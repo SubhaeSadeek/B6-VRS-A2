@@ -1,0 +1,26 @@
+{
+	"name": "vehicle_rental_system",
+	"version": "1.0.0",
+	"description": "This is for the project required to fulfill the assignment No. 2 of next level Course of Programming Hero",
+	"keywords": [
+		"Node.Js",
+		"TypeSCript",
+		"JWT",
+		"Express",
+		"backend"
+	],
+	"license": "ISC",
+	"author": "Md. Nurun Nabi",
+	"main": "index.js",
+	"scripts": {
+		"dev": "tsx --watch ./src/server.ts",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.6",
+		"tsx": "^4.21.0"
+	},
+	"dependencies": {
+		"express": "^5.2.1"
+	}
+}
