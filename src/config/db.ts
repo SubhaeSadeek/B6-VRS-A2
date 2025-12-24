@@ -6,7 +6,7 @@ export const pool = new Pool({
 });
 
 const initDB = async () => {
-	// CREATE table for ***VEHICLES***
+	// CREATE table for ***USERS***
 	await pool.query(`
         CREATE TABLE IF NOT EXISTS users(
         id SERIAL PRIMARY KEY,
@@ -18,6 +18,8 @@ const initDB = async () => {
 
         )
         `);
+
+	// create table for **VEHICLES**
 	await pool.query(`
         CREATE TABLE IF NOT EXISTS vehicles(
         id SERIAL PRIMARY KEY,
@@ -29,7 +31,7 @@ const initDB = async () => {
 
         )
         `);
-
+	// creat Table for ***BOOKINGS***
 	await pool.query(`
             CREATE TABLE IF NOT EXISTS bookings(
             id SERIAL PRIMARY KEY,
