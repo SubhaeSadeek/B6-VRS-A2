@@ -2,26 +2,44 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../config";
 import { pool } from "../config/db";
-
-const auth = () => {
+const auth = (...roles: ("admin" | "customer")[]) => {
 	return async (req: Request, res: Response, next: NextFunction) => {
-		const token = req.headers.authorization;
-		if (!token) {
-			throw new Error("Access token is not retrived!");
-		}
-		const decoded = jwt.verify(token, config.jwtSecret as string) as JwtPayload;
-		const user = await pool.query(
-			`
+		try {
+			const authorizationData = req.headers.authorization;
+			if (!authorizationData) {
+				throw new Error("Access token is not retrived!");
+			}
+			const [type, token] = authorizationData.split(" ");
+
+			if (type !== "Bearer" || !token) {
+				throw new Error("Authorization must be Bearer <token>");
+			}
+			const decoded = jwt.verify(
+				token,
+				config.jwtSecret as string
+			) as JwtPayload;
+
+			const user = await pool.query(
+				`
             SELECT * FROM users WHERE email=$1
             `,
-			[decoded.email]
-		);
-		if (user.rows.length === 0) {
-			throw new Error("user HAS nOt bEeN found");
+				[decoded.email]
+			);
+			if (user.rows.length === 0) {
+				throw new Error("user HAS nOt bEeN found");
+			}
+			req.user = decoded;
+			if (roles.length && !roles.includes(decoded.role)) {
+				throw new Error("Role is not appropriate");
+			}
+
+			next();
+		} catch (err: any) {
+			res.status(500).json({
+				success: false,
+				message: err.message,
+			});
 		}
-		req.user = decoded;
-		console.log(decoded);
-		next();
 	};
 };
 
