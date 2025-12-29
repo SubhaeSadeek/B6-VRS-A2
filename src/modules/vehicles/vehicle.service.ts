@@ -1,4 +1,5 @@
 import { pool } from "../../config/db";
+import { convertVehicleRentPriceIntoNumber } from "../../utils/vehiclePriceToNumber";
 
 // Create Vehicle POST API
 const createVehicleIntoDB = async (payload: Record<string, unknown>) => {
@@ -30,20 +31,70 @@ const getAllVehicleFromDB = async () => {
 	const result = await pool.query(`
         SELECT * FROM vehicles
         `);
-	const vehicles = result.rows.map((vehicle) => {
-		return { ...vehicle, daily_rent_price: Number(vehicle.daily_rent_price) };
-	});
+	console.log(result.rows);
+	const vehicles = convertVehicleRentPriceIntoNumber(result.rows);
 	return vehicles;
 };
+// GET single vehicle by ID
 const getSingleVehicleFromDB = async (vehicleID: number) => {
 	const result = await pool.query(`SELECT * FROM vehicles WHERE id = $1`, [
 		vehicleID,
 	]);
+
+	const vehicles = convertVehicleRentPriceIntoNumber(result.rows);
+	return vehicles;
+};
+// UPDATE vehicle by id
+const updateVehicleFromDB = async (
+	vehicleID: number,
+	payload: Record<string, unknown>
+) => {
+	const {
+		vehicle_name,
+		type,
+		registration_number,
+		daily_rent_price,
+		availability_status,
+	} = payload;
+	const result = await pool.query(
+		`
+        UPDATE vehicles
+		SET
+			vehicle_name = COALESCE($1, vehicle_name),
+			type = COALESCE($2, type),
+			registration_number = COALESCE($3, registration_number),
+			daily_rent_price = COALESCE($4, daily_rent_price),
+			availability_status = COALESCE($5, availability_status)
+		WHERE id = $6
+		RETURNING *
+        `,
+		[
+			vehicle_name,
+			type,
+			registration_number,
+			daily_rent_price,
+			availability_status,
+			vehicleID,
+		]
+	);
+	console.log(result.rows);
+	const vehicles = convertVehicleRentPriceIntoNumber(result.rows);
+	return vehicles;
+};
+const deleteVehicleFromDB = async (vehicleID: number) => {
+	const result = await pool.query(
+		`
+    DELETE FROM vehicles 
+    WHERE id=$1
+    RETURNING *`,
+		[vehicleID]
+	);
 	return result;
 };
-
 export const vehicleService = {
 	createVehicleIntoDB,
 	getAllVehicleFromDB,
 	getSingleVehicleFromDB,
+	updateVehicleFromDB,
+	deleteVehicleFromDB,
 };
