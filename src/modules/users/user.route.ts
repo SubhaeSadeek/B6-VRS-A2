@@ -5,10 +5,7 @@ import { userController } from "./user.controller";
 const router = Router();
 
 router.get("/", auth("admin"), userController.getAllUsers);
-router.get(
-	"/singleuser",
-	auth("admin", "customer"),
-	userController.getSingleUser
-);
+router.put("/:userId", auth("admin", "customer"), userController.updateUser);
+router.delete("/:userId", auth("admin"), userController.deleteUser);
 
 export const userRoute = router;
