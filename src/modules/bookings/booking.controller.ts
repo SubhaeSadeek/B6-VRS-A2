@@ -22,7 +22,24 @@ const createBooking = async (req: Request, res: Response) => {
 		});
 	}
 };
+const getAllBookings = async (req: Request, res: Response) => {
+	try {
+		const result = await bookingService.getAllBookingsFromDB(req.user!);
+
+		res.status(201).json({
+			success: true,
+			message: "Vehicle created successfully",
+			data: result,
+		});
+	} catch (err: any) {
+		res.status(500).json({
+			success: false,
+			message: err.message,
+		});
+	}
+};
 
 export const bookingController = {
 	createBooking,
+	getAllBookings,
 };

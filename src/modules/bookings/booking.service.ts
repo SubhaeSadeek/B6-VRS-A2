@@ -63,6 +63,57 @@ const createBookingIntoDB = async (payload: Record<string, unknown>) => {
 	};
 };
 
+const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
+	// get all bookings for CUSTOMER
+	if (userload.role === "admin") {
+		const bookingResult = await pool.query(`SELECT * FROM bookings`);
+		const enriched = [];
+		for (const booking of bookingResult.rows) {
+			const user = await pool.query(
+				"SELECT name,email FROM users WHERE id=$1",
+				[booking.customer_id]
+			);
+			const vehicle = await pool.query(
+				"SELECT vehicle_name,registration_number FROM vehicles WHERE id=$1",
+				[booking.vehicle_id]
+			);
+			enriched.push({
+				...booking,
+				rent_start_date: booking.rent_start_date.toISOString().split("T")[0],
+				rent_end_date: booking.rent_end_date.toISOString().split("T")[0],
+				total_price: Number(booking.total_price),
+				customer: user.rows[0],
+				vehicle: vehicle.rows[0],
+			});
+		}
+		return enriched;
+	} else {
+		const bookingResult = await pool.query(
+			`
+        SELECT id, vehicle_id, rent_start_date, rent_end_date, total_price, status FROM bookings
+        WHERE customer_id = $1`,
+			[userload.id]
+		);
+		const enriched = [];
+		for (const booking of bookingResult.rows) {
+			const vehicle = await pool.query(
+				"SELECT vehicle_name,registration_number, type FROM vehicles WHERE id=$1",
+				[booking.vehicle_id]
+			);
+			enriched.push({
+				...booking,
+				rent_start_date: booking.rent_start_date.toISOString().split("T")[0],
+				rent_end_date: booking.rent_end_date.toISOString().split("T")[0],
+				total_price: Number(booking.total_price),
+
+				vehicle: vehicle.rows[0],
+			});
+		}
+		return enriched;
+	}
+};
+
 export const bookingService = {
 	createBookingIntoDB,
+	getAllBookingsFromDB,
 };
