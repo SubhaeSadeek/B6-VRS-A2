@@ -9,8 +9,9 @@ const app = express();
 
 // middlewares
 app.use(express.json());
-
+// database table initiating if no table created
 initDB();
+// auto return function for booking exceeding rent_end_date
 autoReturnEndBooking();
 
 //  USERS Routes

@@ -3,8 +3,6 @@ import { pool } from "../config/db";
 export const autoReturnEndBooking = () => {
 	setInterval(async () => {
 		try {
-			await pool.query("BEGIN");
-
 			const { rows } = await pool.query(`
 				UPDATE bookings
 				SET status = 'returned'
@@ -23,11 +21,8 @@ export const autoReturnEndBooking = () => {
 					[rows.map((r) => r.vehicle_id)]
 				);
 			}
-
-			await pool.query("COMMIT");
 		} catch (err) {
-			await pool.query("ROLLBACK");
 			console.error("Auto-return failed:", err);
 		}
-	}, 30 * 60 * 1000); /* will call after ecery 30 mins interval */
+	}, 60 * 60 * 1000); /* will call after ecery 30 mins interval */
 };
