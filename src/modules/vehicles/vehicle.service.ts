@@ -82,6 +82,20 @@ const updateVehicleFromDB = async (
 	return vehicles;
 };
 const deleteVehicleFromDB = async (vehicleID: number) => {
+	// selecting user who already booked that is active and if already booked, user is being barred to delete
+	const vehicleHasBookingResult = await pool.query(
+		`
+		SELECT 1
+    	FROM bookings
+    	WHERE vehicle_id = $1
+      	AND status = 'active'
+    	LIMIT 1
+		`,
+		[vehicleID]
+	);
+	if (vehicleHasBookingResult.rows.length > 0) {
+		throw new Error("Vehicle has an active booking. Vehicle cannot be deleted");
+	}
 	const result = await pool.query(
 		`
     DELETE FROM vehicles 

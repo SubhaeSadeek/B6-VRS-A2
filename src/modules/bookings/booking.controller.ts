@@ -12,7 +12,7 @@ const createBooking = async (req: Request, res: Response) => {
 
 		res.status(201).json({
 			success: true,
-			message: "Vehicle created successfully",
+			message: "Booking created successfully",
 			data: result,
 		});
 	} catch (err: any) {

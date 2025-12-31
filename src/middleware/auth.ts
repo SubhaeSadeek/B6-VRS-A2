@@ -26,7 +26,9 @@ const auth = (...roles: ("admin" | "customer")[]) => {
 				[decoded.email]
 			);
 			if (user.rows.length === 0) {
-				throw new Error("user HAS nOt bEeN found");
+				throw new Error(
+					"JWT token may be expire or usert and email mismach with token"
+				);
 			}
 			req.user = decoded;
 			if (roles.length && !roles.includes(decoded.role)) {

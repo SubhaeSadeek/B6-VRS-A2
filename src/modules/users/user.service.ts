@@ -29,6 +29,7 @@ const updateUsersFromDB = async (
 	return result;
 };
 const deleteUserFromDB = async (userId: number) => {
+	// selecting user who already booked that is active and if already booked, user is being barred to delete
 	const userHasBookingResult = await pool.query(
 		`
 		SELECT 1
@@ -42,7 +43,7 @@ const deleteUserFromDB = async (userId: number) => {
 	if (userHasBookingResult.rows.length > 0) {
 		throw new Error("User has an active booking. User cannot be deleted");
 	}
-
+	// user can be deleted who didn't book any car
 	const result = pool.query(
 		`
 	DELETE FROM users 
