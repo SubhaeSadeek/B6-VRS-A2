@@ -70,7 +70,6 @@ const getSingleVehicle = async (req: Request, res: Response) => {
 	}
 };
 const updateVehicle = async (req: Request, res: Response) => {
-	console.log(req.params.vehicleId);
 	const id = Number(req.params.vehicleId);
 	if (Number.isNaN(id)) {
 		return res.status(400).json({

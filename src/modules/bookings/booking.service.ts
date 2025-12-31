@@ -65,9 +65,10 @@ const createBookingIntoDB = async (payload: Record<string, unknown>) => {
 
 const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
 	// get all bookings for CUSTOMER
+	console.log(userload);
 	if (userload.role === "admin") {
 		const bookingResult = await pool.query(`SELECT * FROM bookings`);
-		const enriched = [];
+		const finalView = [];
 		for (const booking of bookingResult.rows) {
 			const user = await pool.query(
 				"SELECT name,email FROM users WHERE id=$1",
@@ -77,7 +78,7 @@ const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
 				"SELECT vehicle_name,registration_number FROM vehicles WHERE id=$1",
 				[booking.vehicle_id]
 			);
-			enriched.push({
+			finalView.push({
 				...booking,
 				rent_start_date: booking.rent_start_date.toISOString().split("T")[0],
 				rent_end_date: booking.rent_end_date.toISOString().split("T")[0],
@@ -86,7 +87,7 @@ const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
 				vehicle: vehicle.rows[0],
 			});
 		}
-		return enriched;
+		return finalView;
 	} else {
 		const bookingResult = await pool.query(
 			`
@@ -94,13 +95,13 @@ const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
         WHERE customer_id = $1`,
 			[userload.id]
 		);
-		const enriched = [];
+		const finalView = [];
 		for (const booking of bookingResult.rows) {
 			const vehicle = await pool.query(
 				"SELECT vehicle_name,registration_number, type FROM vehicles WHERE id=$1",
 				[booking.vehicle_id]
 			);
-			enriched.push({
+			finalView.push({
 				...booking,
 				rent_start_date: booking.rent_start_date.toISOString().split("T")[0],
 				rent_end_date: booking.rent_end_date.toISOString().split("T")[0],
@@ -109,11 +110,71 @@ const getAllBookingsFromDB = async (userload: Record<string, unknown>) => {
 				vehicle: vehicle.rows[0],
 			});
 		}
-		return enriched;
+		return finalView;
 	}
 };
 
+const updateBookingIntoDB = async (
+	bookingID: number,
+	userload: Record<string, unknown>,
+	payload: Record<string, unknown>
+) => {
+	const { status } = payload;
+	console.log(userload.role);
+	const updateResult = await pool.query(
+		`
+            UPDATE bookings
+            SET status = $1
+            WHERE id = $2
+            RETURNING *`,
+		[status, bookingID]
+	);
+	const updateVehicle = await pool.query(
+		`
+			UPDATE vehicles
+			SET availability_status = $1
+			WHERE id = $2
+			RETURNING availability_status
+			`,
+		["available", updateResult.rows[0].vehicle_id]
+	);
+	if (userload.role === "customer") {
+		if (status !== "cancelled") {
+			throw new Error("customer can only cancell booking");
+		}
+
+		return {
+			...updateResult.rows[0],
+			rent_start_date: updateResult.rows[0].rent_start_date
+				.toISOString()
+				.split("T")[0],
+			rent_end_date: updateResult.rows[0].rent_end_date
+				.toISOString()
+				.split("T")[0],
+			total_price: Number(updateResult.rows[0].total_price),
+		};
+	}
+	if (userload.role === "admin") {
+		if (payload.status !== "returned") {
+			throw new Error("Admin should change status to returned ONLY");
+		}
+		return {
+			...updateResult.rows[0],
+			rent_start_date: updateResult.rows[0].rent_start_date
+				.toISOString()
+				.split("T")[0],
+			rent_end_date: updateResult.rows[0].rent_end_date
+				.toISOString()
+				.split("T")[0],
+			total_price: Number(updateResult.rows[0].total_price),
+			vehicle: {
+				availability_status: updateVehicle.rows[0].availability_status,
+			},
+		};
+	}
+};
 export const bookingService = {
 	createBookingIntoDB,
 	getAllBookingsFromDB,
+	updateBookingIntoDB,
 };

@@ -38,8 +38,36 @@ const getAllBookings = async (req: Request, res: Response) => {
 		});
 	}
 };
+const updateBooking = async (req: Request, res: Response) => {
+	const id = Number(req.params.bookingId);
+	if (Number.isNaN(id)) {
+		throw new Error("Booking id must be number");
+	}
+	try {
+		const result = await bookingService.updateBookingIntoDB(
+			id,
+			req.user!,
+			req.body
+		);
+		const message =
+			req.user!.role === "customer"
+				? "Booking cancelled successfully"
+				: "Booking marked as returned. Vehicle is now available ";
+		res.status(200).json({
+			success: true,
+			message,
+			data: result,
+		});
+	} catch (err: any) {
+		res.status(400).json({
+			success: false,
+			message: err.message,
+		});
+	}
+};
 
 export const bookingController = {
 	createBooking,
 	getAllBookings,
+	updateBooking,
 };
