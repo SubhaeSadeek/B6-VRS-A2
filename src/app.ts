@@ -4,12 +4,14 @@ import { authRoute } from "./modules/auth/auth.route";
 import { bookingRoute } from "./modules/bookings/booking.route";
 import { userRoute } from "./modules/users/user.route";
 import { vehicleRoute } from "./modules/vehicles/vehicle.route";
+import { autoReturnEndBooking } from "./utils/autoReturnEndBooking";
 const app = express();
 
 // middlewares
 app.use(express.json());
 
 initDB();
+autoReturnEndBooking();
 
 //  USERS Routes
 app.use("/api/v1/users", userRoute);
