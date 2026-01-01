@@ -23,6 +23,11 @@ app.use("/api/v1/vehicles", vehicleRoute);
 // BOOKING Route
 app.use("/api/v1/bookings", bookingRoute);
 
+// welcome route
+app.use("/", (req: Request, res: Response) => {
+	res.send("Welcome to Vehicle Rental System");
+});
+
 // false route
 app.use((req: Request, res: Response) => {
 	res.status(404).json({
