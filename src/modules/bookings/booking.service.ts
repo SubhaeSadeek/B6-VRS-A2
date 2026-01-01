@@ -120,7 +120,7 @@ const updateBookingIntoDB = async (
 	payload: Record<string, unknown>
 ) => {
 	const { status } = payload;
-	console.log(userload.role);
+
 	const updateResult = await pool.query(
 		`
             UPDATE bookings

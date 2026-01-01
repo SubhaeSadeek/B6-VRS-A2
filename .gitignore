@@ -4,3 +4,6 @@ node_modules/
 # dotenv environment variable files
 .env
 
+# build in folder DIST
+dist
+.vercel
